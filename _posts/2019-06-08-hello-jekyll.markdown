@@ -54,3 +54,44 @@ jekyll serve
 现在看到的博客，博客中的名称，联系方式等元数据都是Jekyll初始化时帮我们填的，这些元数据在Blog/\_config.yml中，按照文件的引导修改一下就是我们自己的了。
 
 再就是博客皮肤的事情了。嗯，默认皮肤现在看起来OK，就不折腾啦。
+
+# 数学公式
+
+写博客需要用数学公式，搜索了一下实现方案，基本都是在博文中加入LaTex格式的公式，然后通过JavaScript渲染。[MathJax](https://www.mathjax.org)是推荐的渲染脚本。
+
+
+嵌入这个脚本需要更改生成网页的模板，模板位于网站根目录的_layouts文件夹下。但是，我的根目录没有这个文件夹，所以推测有一个系统全局的_layouts，这个全局模板的位置根据jekyll serve打印的log找到了。在这个模板的基础上我插入了MathJax，并保存在了博客根目录下新创建的_layouts中。但是，通过这个模板生成的博客缺失了标题，说明本地找到的模板不正确。那么上官网再试试，使用了官网的[minima模板](https://github.com/jekyll/minima/blob/master/_layouts/post.html)后，生成的网页和原来是一致的。嗯，成功找到默认模板了。
+
+
+之后，按照[MathJax Doc](https://docs.mathjax.org/en/latest/configuration.html)的说明，在模板的article标签上方插入了如下脚本和配置。
+
+
+```html
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            displayMath: [ ['$$','$$'] ],
+            processEscapes: true
+        },
+        "HTML-CSS": { fonts: ["TeX"] }
+    });
+</script>
+<script type="text/javascript" async
+        src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+```
+
+
+再写了个复杂的数学公式测试了一下，渲染成功。
+
+
+```TeX
+L=\sum{a_{i}}-\frac{1}{2}\left(\sum_i{\sum_j{\alpha_{i}\alpha_{j}y_{i}y_{j}x_{i}x_{j}}}\right)
+
+```
+
+
+$$ L=\sum{a_{i}}-\frac{1}{2}\left(\sum_i{\sum_j{\alpha_{i}\alpha_{j}y_{i}y_{j}x_{i}x_{j}}}\right) $$
