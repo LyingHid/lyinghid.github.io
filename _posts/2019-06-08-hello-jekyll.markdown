@@ -90,7 +90,6 @@ jekyll serve
 
 ```TeX
 L=\sum{a_{i}}-\frac{1}{2}\left(\sum_i{\sum_j{\alpha_{i}\alpha_{j}y_{i}y_{j}x_{i}x_{j}}}\right)
-
 ```
 
 
