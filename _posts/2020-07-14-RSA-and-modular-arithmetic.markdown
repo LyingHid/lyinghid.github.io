@@ -26,7 +26,7 @@ The original paper has an example, $e = 17$, $d = 157$, modular $n = 2773$, and 
 920
 ```
 
-# How $e$ and $d$ are choosed?
+# How $e$ and $d$ are chosen?
 
 Let's first walk through the process generating $e$ and $d$.
 
