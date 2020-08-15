@@ -7,7 +7,7 @@ categories: RSA modular-arithmetic Euler-Theorem Chinese-Remainder-Theorem
 
 Recently, I took the course of [Applied Cryptography](https://www.udacity.com/course/applied-cryptography--cs387) and learned more details about RSA. The math behind the scene is complicated and attractive for me, so I decided to figure it out.
 
-There are lots of correctness proofs for RSA on the internet, and the most elegant one is the [original paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf). This article serves as a note or index about the algorithm, and related math theorems.
+There are lots of correctness proofs for RSA on the internet, and the most elegant one comes from [original paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf). This article serves as a note or index about the algorithm, and related math theorems.
 
 # First look
 
@@ -26,9 +26,13 @@ The original paper has an example, $e = 17$, $d = 157$, modular $n = 2773$, and 
 920
 ```
 
-# Why does it work?
+# How $e$ and $d$ are choosed?
 
-RSA is based on some modular theorems, I’ll find proofs for them in the following sections. For now, let’s just accept those theorems. And use them to support the correctness of RSA.
+Let's first walk through the process generating $e$ and $d$.
+
+RSA firstly chooses two prime numbers $p$ and $q$, making the modular $n = pq$. Then $e$ and $d$ are generated with the constraint that $ed - 1$ is a multiple of $\varphi(n)$. Note that $\varphi()$ is Euler's totient function, in our case, $\varphi(n) = \varphi(pq) = (p - 1)(q - 1)$.
+
+# Why does it work?
 
 In the above example, we see that $M \equiv M ^ {ed} \mod n$. If both sides can be divided by $M$, we have:
 
@@ -38,7 +42,7 @@ This looks quite like Euler’s Theorem, which states:
 
 $$ M ^ {\varphi(n)} \equiv 1 \mod n $$
 
-The correctness is guaranteed if we can relate $ed - 1$ to $k$ times of $\varphi(n)$. If so, we have:
+As $ed - 1$ is a multiple of $\varphi(n)$, we have $ed - 1 = k \varphi(n)$ for some k. By using Euler’s Theorem, we can conduct that:
 
 $$ \begin{align}
 M ^ {ed} &\equiv M ^ {ed - 1 + 1} \\
@@ -50,13 +54,15 @@ M ^ {ed} &\equiv M ^ {ed - 1 + 1} \\
 \tag{2}
 \end{align} $$
 
-Before that, we need to walk through the process used to generate $e$ and $d$. RSA firstly chooses two prime numbers $p$ and $q$, then chooses the modular $n = pq$, so that $\varphi(n) = (p - 1)(q - 1)$. By Fermat's Little Theorem, if $M$ and $p$ are coprime, we have $M ^ {p - 1} \equiv 1 \mod p$, the same applies for $q$, which leads to:
+The plain text $M$ and modular $n$ should be coprime by the precondition of Euler’s Theorem. However, this precondition is [not necessary](https://crypto.stackexchange.com/a/1008) if conducted by Fermat's Little Theorem.
+
+By Fermat's Little Theorem, if $M$ and $p$ are coprime, we have $M ^ {p - 1} \equiv 1 \mod p$, which leads to:
 
 $$ \begin{align}
 M ^ {ed} &= M ^ {k \varphi(n)} \times M \\
          &= M ^ {k(p -1)(q - 1)} \times M \\
          &= (M ^ {p - 1}) ^ {k(q - 1)} \times M \\
-         &= (M ^ {p - 1} \mod n) ^ {k(q - 1)} \times M \\
+         &= (M ^ {p - 1} \mod p) ^ {k(q - 1)} \times M \\
          &= 1 ^ {k(q - 1)} \times M \\
          &= 1 \times M \\
          &= M \mod p
@@ -67,9 +73,11 @@ And the same applies for $q$: $M ^ {ed} \equiv M \mod q$.
 
 Since $M ^ {ed}$ has the same remainder when divided by $p$ and $q$, we have $M ^ {ed} = M \mod pq = M \mod n$ by Chinese Remainder Theorem.
 
+Since $p$ and $q$ are prime numbers, any other number is naturally coprime to both of them. We don't need coprime precondition any more.
+
 # Modular Arithmetic
 
-Equation (1) is derived by division, which we take for granted in real number arithmetic; and equation (2)(3) used one multiplication property: $ a \times b \mod n \equiv (a \mod n) \times (b \mod n) \mod n $. Things become different as we are doing modular arithmetic. We need to prove those properties before taking advantages of them. Let's begin with intuition.
+Equation (1) is derived by division, which we take for granted in real number arithmetic; and equation (2)(3) utilized a multiplication property: $ a \times b \mod n \equiv (a \mod n) \times (b \mod n) \mod n $. Things become different as we are not doing usual arithmetic. We need to prove those properties before taking advantages of them. Let's begin with intuition.
 
 ## Intuition
 
@@ -85,7 +93,7 @@ For normal arithmetic, $ 5 * 3 = 5 + 5 + 5 = 15 $, the same applies to modular a
 
 $$ 5 * 3 \equiv 5 + 5 + 5 \equiv 15 \equiv 3 \mod 12 $$
 
-And, division is the inverse of multiplication. For normal arithmetic, divisor zero is meaningless. Because division is a one to one map, all numbers map to zero when multiplied by zero, so the inverse is all numbers when divided by zero. For modular arithmetic, we have $ 4 \times 5 \equiv 8 \mod 12 $, so $ 8 \div 5 \equiv 4 \mod 12 $. However, $ 8 \div 4 \mod 12 $ is meaningless, as $ 4 \times 2 \equiv 8 \mod 12 $, $ 4 \times 5 \equiv 8 \mod 12 $, $ 4 \times 8 \equiv 8 \mod 12 $ and $ 4 \times 11 \equiv 8 \mod 12 $, so when divided by $4$, we can get four results $2$, $5$, $8$ and $11$.
+And, division is the inverse of multiplication. For normal arithmetic, divisor zero is meaningless. Because division is a one to one map, all numbers map to zero when multiplied by zero, so the inverse is all numbers when divided by zero. For modular arithmetic, we have $ 4 \times 5 \equiv 8 \mod 12 $, so $ 8 \div 5 \equiv 4 \mod 12 $. However, $ 8 \div 4 \mod 12 $ is meaningless, as $ 4 \times 2 \equiv 8 \mod 12 $, $ 4 \times 5 \equiv 8 \mod 12 $, $ 4 \times 8 \equiv 8 \mod 12 $ and $ 4 \times 11 \equiv 8 \mod 12 $, so when divided by $4$, we get four results $2$, $5$, $8$ and $11$ which is not a one to one map.
 
 ## Properties
 
@@ -446,7 +454,7 @@ This time we can use a rectangle to visualize the proof, of which the width and 
   </g>
 </svg>
 
-Thanks for the multiplication property, we are confident to the transformations made in equations (2)(3).
+Thanks for this multiplication property, the transformations are valid in equations (2)(3).
 
 And by these properties, we can conclude that modular arithmetic only cares about the remainder part.
 
@@ -460,11 +468,13 @@ Now we start proving theorems leveraged by RSA.
 
 ## Fermat’ Little Theorem
 
-This theorem states that $ a ^ {p - 1} \equiv 1 \mod p $ if $a$ and $p$ are coprime. Wikipedia uses an intuitive way to prove it by [counting necklaces](https://en.wikipedia.org/wiki/Proofs_of_Fermat%27s_little_theorem). Section Fermat/Euler Theorem in [another paper](https://aip.scitation.org/doi/pdf/10.1063/1.3526259) proves it by congruent and permutation, which defines two sets $P$ and $Q$ under prime modular $p$. Elements in $P$ are from $1$ to $p - 1$, which are all coprime to $p$. And $Q$ is made by multiplying each element in $P$ with some number. The theorem is proved by observing that $Q$ and $P$ are the same since the result of multiplications of elements in $P$ is a permutation of $P$ as elements in $Q$ are distinct to each other and the size/range of $P$ and $Q$ are the same. However, it’s insufficient to support the Euler's Theorem using the approach provided by the paper. By the way, Fermat's Little Theorem is a special case in Eulur's Theorem.
+This theorem states that $ a ^ {p - 1} \equiv 1 \mod p $ if $a$ and $p$ are coprime. Wikipedia uses an intuitive way to prove it by [counting necklaces](https://en.wikipedia.org/wiki/Proofs_of_Fermat%27s_little_theorem). Section Fermat/Euler Theorem in [another paper](https://aip.scitation.org/doi/pdf/10.1063/1.3526259) proves it by congruent and permutation, which defines two sets $P$ and $Q$ under prime modular $p$. Elements in $P$ are from $1$ to $p - 1$, which are all coprime to $p$. And $Q$ is made by multiplying each element in $P$ with some number. The theorem is proved by observing that $Q$ and $P$ are the same since the result of multiplications of elements in $P$ is a permutation of $P$ as elements in $Q$ are distinct to each other and the size/range of $P$ and $Q$ are the same. However, it’s insufficient to support the Euler's Theorem using this approach provided by the paper. By the way, Fermat's Little Theorem is a special case in Eulur's Theorem.
 
 ## Euler's Theorem:
 
-Now the modular is not required to be prime as a general case of Fermat's little theorem. The theorem is also proved by congruent and permutation. An Indian brother [explained the process](https://www.youtube.com/watch?v=cnYit1nQ12U) with his heavy accent. The set $P$ still contains all the numbers coprime to modular and $Q$ is still made by multiplying all the numbers in $P$. Note that as the modular is not prime, some numbers from $1$ to the $modular - 1$ may not belong to set $P$, which distincts it from Fermat’s Little Theorem. After multiplying, numbers in $Q$ have the possibility of not coprime with modular any more. So extra steps are taken to show that elements in $Q$ are still coprime, by which we get a precondition of permutation. Other processes are the same as Fermat’s Little Theorem.
+Now the modular is not required to be prime, so it's a general case of Fermat's little theorem. The theorem is also proved by congruent and permutation. An Indian brother [explained the proof](https://www.youtube.com/watch?v=cnYit1nQ12U) with his heavy accent. The set $P$ still contains all the numbers coprime to modular and $Q$ is still made by multiplying all the numbers in $P$. Note that as the modular is not prime, some numbers from $1$ to the $modular - 1$ may not belong to set $P$, which distincts it from Fermat’s Little Theorem. After multiplying, numbers in $Q$ have the possibility of not coprime with modular any more. So extra steps are taken to show that elements in $Q$ are still coprime, by which we get a precondition of permutation. Other processes are the same as Fermat’s Little Theorem.
+
+Euler's totient function is proved in a series of posts beginning at [here](https://mathlesstraveled.com/2019/05/09/computing-the-euler-totient-function-part-1/) by leveraging the multiplicative property of it and factorization.
 
 ## Chinese Remainder Theorem
 
@@ -472,6 +482,3 @@ RSA uses the corollary or special case of Chinese Remainder Theorem. Let’s wal
 
 The corollary says that if $a$ and $b$ are the same, we have $ x \equiv a \mod pq $.
 [Here](https://exploringnumbertheory.wordpress.com/2013/11/23/proving-chinese-remainder-theorem/) is the proof of the corollary by letting $ x = a = b $. The corollary is also proved directly by [the paper](https://aip.scitation.org/doi/pdf/10.1063/1.3526259) used before to prove Fermat’s Little Theorem.
-
-# Textbook RSA
-In the original paper, messages used by RSA should be coprime with the modular which is required by Euler's Theorem. However, the course I have taken says it is ok if not coprime. This is explained by [the answer](https://crypto.stackexchange.com/a/1008) from stackexchange as RSA’s correctness can be deduced directly with Chinese Remainder Theorem without Euler's Theorem.
